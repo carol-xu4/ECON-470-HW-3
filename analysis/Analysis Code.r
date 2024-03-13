@@ -45,3 +45,25 @@ ggplot() +
        color = "Variable") +
   theme_minimal() + theme(aspect.ratio = 0.75)
   ggsave("avg_tax_price.png")
+
+# 3 Identify the 5 states with the highest increases in cigarette prices (in dollars) over the time period. Plot the average number of packs sold per capita for those states from 1970 to 2018.
+
+increase = final.data %>%
+  group_by(state) %>%
+  summarize(increase = last(cost_per_pack) - first(cost_per_pack))
+
+increase = increase %>%
+  arrange(desc(increase))
+head(increase)
+    # the 5 states with the highest increase in cigarette prices from 1970 to 2018 are New York, the District of Columbia, Connecticut, Rhode Island, and Massachusetts.
+
+top_states = final.data %>%
+  filter(state %in% c("New York", "District of Columbia", "Connecticut", "Rhode Island", "Massachusetts"))
+
+ggplot(top_states, aes(x = Year, y = sales_per_capita, group = state, color = state)) +
+  geom_line(alpha = 0.5, size = 1.5) +
+  labs(x = "Year", y = "Sales per Capita",
+       title = "Sales per Capita",
+       color = "State") +
+  theme_minimal() + theme(aspect.ratio = 0.75)
+  ggsave("top_states.png")
