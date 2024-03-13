@@ -67,3 +67,27 @@ ggplot(top_states, aes(x = Year, y = sales_per_capita, group = state, color = st
        color = "State") +
   theme_minimal() + theme(aspect.ratio = 0.75)
   ggsave("top_states.png")
+
+# 4 Identify the 5 states with the lowest increases in cigarette prices over the time period. Plot the average number of packs sold per capita for those states from 1970 to 2018.
+
+increase = increase %>%
+  arrange(increase)
+head(increase)
+    # the 5 states with the lowest increase in cigarette prices from 1970 to 1980 are Missouri, North Dakota, Tennessee, Georgia, and North Carolina
+
+low_states = final.data %>%
+  filter(state %in% c("Missouri", "North Dakota", "Tennessee", "Georgia", "North Carolina"))
+
+ggplot(low_states, aes(x = Year, y = sales_per_capita, group = state, color = state)) +
+  geom_line(alpha = 0.5, size = 1.5) +
+  labs(x = "Year", y = "Sales per Capita",
+    title = "Sales per Capita",
+    color = "State") + 
+  theme_minimal() + theme(aspect.ratio = 0.75)
+  ggsave("lowstates.png")
+
+# 5 Compare the trends in sales from the 5 states with the highest price increases to those with the lowest price increases.
+
+increase = increase %>%
+  filter(state%in% c("New York", "District of Columbia", "Connecticut", "Rhode Island", "Massachusetts", "Missouri", "North Dakota", "Tennessee", "Georgia", "North Carolina") )
+view(increase)
