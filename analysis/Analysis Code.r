@@ -55,7 +55,6 @@ increase = final.data %>%
 increase = increase %>%
   arrange(desc(increase))
 head(increase)
-    # the 5 states with the highest increase in cigarette prices from 1970 to 2018 are New York, the District of Columbia, Connecticut, Rhode Island, and Massachusetts.
 
 top_states = final.data %>%
   filter(state %in% c("New York", "District of Columbia", "Connecticut", "Rhode Island", "Massachusetts"))
@@ -73,7 +72,6 @@ ggplot(top_states, aes(x = Year, y = sales_per_capita, group = state, color = st
 increase = increase %>%
   arrange(increase)
 head(increase)
-    # the 5 states with the lowest increase in cigarette prices from 1970 to 1980 are Missouri, North Dakota, Tennessee, Georgia, and North Carolina
 
 low_states = final.data %>%
   filter(state %in% c("Missouri", "North Dakota", "Tennessee", "Georgia", "North Carolina"))
@@ -88,6 +86,43 @@ ggplot(low_states, aes(x = Year, y = sales_per_capita, group = state, color = st
 
 # 5 Compare the trends in sales from the 5 states with the highest price increases to those with the lowest price increases.
 
-increase = increase %>%
-  filter(state%in% c("New York", "District of Columbia", "Connecticut", "Rhode Island", "Massachusetts", "Missouri", "North Dakota", "Tennessee", "Georgia", "North Carolina") )
-view(increase)
+sales = final.data %>%
+  filter(state%in% c("New York", "District of Columbia", "Connecticut", "Rhode Island", "Massachusetts", "Missouri", "North Dakota", "Tennessee", "Georgia", "North Carolina"))
+
+ggplot(sales, aes(x = Year, y = sales_per_capita, group = state, color = state)) +
+  geom_line(alpha = 0.5, size = 1.5) +
+  labs(x = "Year", y = "Sales per Capita",
+    title = "Sales per Capita",
+    color = "State") + 
+  theme_minimal() + theme(aspect.ratio = 0.75)
+  ggsave("sales.png")
+
+sales_1970 = sales %>%
+  filter(Year == 1970) %>%
+  select(state, sales_per_capita)
+sales_2018 = sales %>%
+  filter(Year == 2018) %>%
+  select(state, sales_per_capita)
+sales_change <- sales_2018 %>%
+  left_join(sales_1970, by = "state", suffix = c("_2018", "_1970")) %>%
+  mutate(sales_change = sales_per_capita_2018 - sales_per_capita_1970) %>%
+  select(state, sales_change)
+
+sales_data = merge(sales_change, increase, by = "state")
+sales_data = sales_data[order(sales_data$increase), ]
+print(sales_data)
+
+# ESTIMATE ATES
+
+# 6. From 1970 to 1990, regress log sales on log prices to estimate the price elasticity of demand over that period
+final.data = final.data %>%
+  filter(Year >= 1970 & Year <= 1990)
+
+final.data$log_sales <- log(final.data$sales_per_capita)
+final.data$log_price <- log(final.data$cost_per_pack)
+
+reg = lm(log_sales ~ log_price,
+          data=final.data)
+summary(reg)
+
+# 7. regress log sales on log prices using the total (federal and state) cigarette tax (in dollars) as an instrument for log prices.
