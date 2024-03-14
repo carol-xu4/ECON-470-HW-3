@@ -126,3 +126,25 @@ reg = lm(log_sales ~ log_price,
 summary(reg)
 
 # 7. regress log sales on log prices using the total (federal and state) cigarette tax (in dollars) as an instrument for log prices.
+first_stage <- ivreg(log_price ~ tax_dollar, data = final.data)
+second_stage <- ivreg(log_sales ~ fitted(first_stage), data = final.data)
+summary(second_stage)
+
+# 8. first stage and reduced-form results from the instrument
+summary(first_stage)
+
+# 9. 1991 to 2015
+final.data = final.data %>% ungroup() %>%
+  filter(Year >= 1991 & Year <= 2015)
+
+final.data$log_sales <- log(final.data$sales_per_capita)
+final.data$log_price <- log(final.data$cost_per_pack)
+
+reg = lm(log_sales ~ log_price,
+          data=final.data)
+summary(reg)
+
+first_stage <- ivreg(log_price ~ tax_dollar, data = final.data)
+summary(first_stage)
+second_stage <- ivreg(log_sales ~ fitted(first_stage), data = final.data)
+summary(second_stage)
