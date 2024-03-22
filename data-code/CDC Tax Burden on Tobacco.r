@@ -9,12 +9,10 @@
 
 # Preliminaries -----------------------------------------------------------
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table, gdata, knittr, AER)
-
+pacman::p_load(tidyverse, ggplot2, dplyr, lubridate, stringr, readxl, data.table, gdata, knittr)
 
 cig.data <- read_csv("data/input/The_Tax_Burden_on_Tobacco__1970-2019.csv", col_names = TRUE)
 cpi.data <- read_xlsx("data/input/SeriesReport-20240312171738_5e6cf9.xlsx", skip = 11)
-
 
 # Clean tobacco data --------------------------------------------------------------
 cig.data <- cig.data %>%

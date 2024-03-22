@@ -3,29 +3,31 @@
 # SUMMARIZE THE DATA
 
 # 1 proportion of states with a change in their cigarette tax in each year from 1970 to 1985.
-final.data = final.data %>%
+tax_state_data = cig.data %>%
+  filter(measure =="tax_state")
+
+tax_state_data = tax_state_data %>%
+  arrange(state, Year) %>%
+  mutate(tax_change = ifelse(value != lead(value), 1, 0))
+
+tax_state_data = tax_state_data %>%
   filter(Year >= 1970 & Year <= 1985)
 
-tax_change = final.data %>%
+tax_change = tax_state_data %>%
   group_by(Year) %>%
-  summarize(unique_tax_states = n_distinct(tax_state))
-
-states = final.data %>%
-    group_by(Year) %>%
-    summarize(total_states = n_distinct(state))
-
-tax_change = left_join(tax_change, states, by = "Year") %>%
-  mutate(proportion_changed = unique_tax_states / 51)
+  summarize(proportion_changed = mean(tax_change))
 
 ggplot(tax_change, aes(x = as.factor(Year), y = proportion_changed)) +
   geom_bar(stat = "identity", fill = "skyblue") +
   labs(x = "Year", y = "Proportion of States with Tax Change",
-       title = "Change in Cigarette Tax by Year") + theme_minimal() + theme(aspect.ratio = 0.75)
+       title = "Change in Cigarette Tax by Year") + theme_minimal() + theme(aspect.ratio = 1.0)
   ggsave("tax_change.png")
 
-# 2 Average tax (in 2012 dollars) on cigarettes and the average price of a pack of cigarettes from 1970 to 2018.
 
+
+# 2 Average tax (in 2012 dollars) on cigarettes and the average price of a pack of cigarettes from 1970 to 2018.
 final.data = final.data %>%
+  ungroup() %>%
   filter(Year >= 1970 & Year <= 2018)
 
 average_tax = final.data %>%
@@ -115,7 +117,7 @@ print(sales_data)
 # ESTIMATE ATES
 
 # 6. From 1970 to 1990, regress log sales on log prices to estimate the price elasticity of demand over that period
-final.data = final.data %>%
+final.data = final.data %>% ungroup() %>%
   filter(Year >= 1970 & Year <= 1990)
 
 final.data$log_sales <- log(final.data$sales_per_capita)
@@ -126,8 +128,8 @@ reg = lm(log_sales ~ log_price,
 summary(reg)
 
 # 7. regress log sales on log prices using the total (federal and state) cigarette tax (in dollars) as an instrument for log prices.
-first_stage <- ivreg(log_price ~ tax_dollar, data = final.data)
-second_stage <- ivreg(log_sales ~ fitted(first_stage), data = final.data)
+first_stage <- lm(log_price ~ tax_dollar, data = final.data)
+second_stage <- lm(log_sales ~ fitted(first_stage), data = final.data)
 summary(second_stage)
 
 # 8. first stage and reduced-form results from the instrument
@@ -144,7 +146,8 @@ reg = lm(log_sales ~ log_price,
           data=final.data)
 summary(reg)
 
-first_stage <- ivreg(log_price ~ tax_dollar, data = final.data)
+first_stage <- lm(log_price ~ tax_dollar, data = final.data)
 summary(first_stage)
-second_stage <- ivreg(log_sales ~ fitted(first_stage), data = final.data)
+second_stage <- lm(log_sales ~ fitted(first_stage), data = final.data)
 summary(second_stage)
+
